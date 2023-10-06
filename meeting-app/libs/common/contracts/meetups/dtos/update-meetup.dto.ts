@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateMeetupDto } from './create-meetup.dto';
+import { MeetupCreate } from '../meetup.create';
 
-export class UpdateMeetupDto extends PartialType(CreateMeetupDto) { }
+export class UpdateMeetupDto extends PartialType(MeetupCreate.Request) { }

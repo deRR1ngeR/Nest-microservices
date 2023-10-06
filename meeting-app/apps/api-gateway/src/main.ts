@@ -2,11 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import * as cookieParser from 'cookie-parser';
+
 import { ApiGatewayModule } from './api-gateway.module';
 import { RpcExceptionToHttpExceptionFilter } from './exceptionFilters/rpcExceptionFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
+
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 

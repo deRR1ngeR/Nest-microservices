@@ -1,21 +1,23 @@
-import { Controller, Get, UseFilters } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
-import { CreateUserDto } from 'libs/common/contracts/users/dtos/create-user.dto';
-import RequestWithUser from 'libs/common/contracts/users/requests/requset-with-user.interface';
-import { LoginResponse } from 'libs/common/contracts/users/responses/login.response';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { LocalAuthGuard } from './guard/local.guard';
+import { AccounLogin } from 'libs/common/contracts/account/account.login';
+import { AccountRegister } from 'libs/common/contracts/account/account.register';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @MessagePattern('register')
-  async register(@Payload() data: CreateUserDto) {
+  async register(@Payload() data: AccountRegister.Request) {
     return await this.authService.register(data);
   }
 
-  @MessagePattern('login')
-  async login(@Payload() data: RequestWithUser): Promise<LoginResponse> {
-    return this.authService.login(data)
+  @MessagePattern(AccounLogin.topic)
+  async login(@Payload() data: AccounLogin.Request): Promise<AccounLogin.Response> {
+    console.log(data);
+    return this.authService.login(data);
   }
+
 }

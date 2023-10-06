@@ -5,6 +5,9 @@ import { ApiGatewayMeetupController } from './controllers/api-gateway-meetup.con
 import { ApiGatewayMeetupService } from './services/api-gateway-meetup.service';
 import { ApiGatewayAuthController } from './controllers/api-gateway-auth.controller';
 import { ApiGatewayAuthService } from './services/api-gateway-auth.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthStrategy } from './strategy/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -30,10 +33,12 @@ import { ApiGatewayAuthService } from './services/api-gateway-auth.service';
           }
         }
       }
-    ])
+    ]), ConfigModule.forRoot({
+      expandVariables: true,
+    }),
   ],
   controllers: [ApiGatewayMeetupController, ApiGatewayAuthController],
-  providers: [ApiGatewayMeetupService, ApiGatewayAuthService],
+  providers: [ApiGatewayMeetupService, ApiGatewayAuthService, JwtAuthStrategy],
 })
 export class ApiGatewayModule { }
 

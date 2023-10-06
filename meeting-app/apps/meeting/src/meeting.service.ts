@@ -1,15 +1,15 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'libs/common/database/prisma.service';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
-import { MeetupResponse } from 'libs/common/contracts/meetups/responses/meetup.response';
+import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
+import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 
 @Injectable()
 export class MeetingService {
   constructor(private readonly db: PrismaService) { }
 
-  async create(dto: CreateMeetupDto): Promise<MeetupResponse> {
+  async create(dto: MeetupCreate.Request): Promise<MeetupCreate.Response> {
     return await this.db.meetup.create({
       data: {
         ...dto,
@@ -18,14 +18,14 @@ export class MeetingService {
     })
   }
 
-  async findAll() {
+  async findAll(): Promise<MeetupCreate.Response[]> {
     const result = await this.db.meetup.findMany();
     if (!result)
       throw new HttpException('Requested content not found', HttpStatus.NOT_FOUND)
     return result;
   }
 
-  async findById(id: number): Promise<MeetupResponse> {
+  async findById(id: number): Promise<MeetupCreate.Response> {
     return await this.db.meetup.findUnique({
       where: {
         id: id
@@ -34,9 +34,8 @@ export class MeetingService {
     );
   }
 
-  async update(id: number, dto: UpdateMeetupDto): Promise<MeetupResponse> {
+  async update(id: number, dto: UpdateMeetupDto): Promise<MeetupUpdate.Response> {
     try {
-      console.log(dto)
       return await this.db.meetup.update({
         where: {
           id: id
@@ -52,7 +51,7 @@ export class MeetingService {
     }
   }
 
-  async delete(id: number): Promise<MeetupResponse> {
+  async delete(id: number): Promise<MeetupCreate.Response> {
     try {
       return await this.db.meetup.delete({
         where: {

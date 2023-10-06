@@ -2,15 +2,15 @@ import { Controller, HttpException, HttpStatus } from '@nestjs/common';
 import { Ctx, MessagePattern, Payload, RmqContext } from '@nestjs/microservices';
 
 import { MeetingService } from './meeting.service';
-import { UpdateMeetupRequest } from '../../../libs/common/contracts/meetups/requests/update-meetup.request';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
+import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
+import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 
 @Controller()
 export class MeetingController {
   constructor(private readonly meetingService: MeetingService) { }
 
-  @MessagePattern('createMeetup')
-  async create(@Payload() data: CreateMeetupDto, @Ctx() context: RmqContext) {
+  @MessagePattern(MeetupCreate.topic)
+  async create(@Payload() data: MeetupCreate.Request): Promise<MeetupCreate.Response> {
     return await this.meetingService.create(data);
   }
 
@@ -33,7 +33,7 @@ export class MeetingController {
   }
 
   @MessagePattern('updateMeetup')
-  async update(@Payload() data: UpdateMeetupRequest, @Ctx() context: RmqContext) {
+  async update(@Payload() data: MeetupUpdate.Request, @Ctx() context: RmqContext) {
     const id = data.id;
     delete data.id;
     const result = await this.meetingService.update(+id, data.data);

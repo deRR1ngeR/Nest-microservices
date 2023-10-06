@@ -1,30 +1,26 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { $Enums, User } from '@prisma/client';
 
-import { CreateUserDto } from 'libs/common/contracts/users/dtos/create-user.dto';
 import { PrismaService } from 'libs/common/database/prisma.service';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { RpcException } from '@nestjs/microservices';
-import { UserResponse } from 'libs/common/contracts/users/responses/user.response';
+import { AccountRegister } from 'libs/common/contracts/account/account.register';
 
 @Injectable()
 export class UsersService {
 
   constructor(private readonly db: PrismaService) { }
 
-  async createUser(dto: CreateUserDto): Promise<UserResponse> {
+  async createUser(dto: AccountRegister.Request): Promise<AccountRegister.Response> {
     const isUserExist = await this.findUserByEmail(dto.email);
-    console.log(isUserExist)
     if (isUserExist) {
-      console.log('err')
-      throw new RpcException(new UnauthorizedException('User with such email was not found'));
-
+      throw new RpcException(new UnauthorizedException('User with such email is already exists'));
     }
 
     const salt = genSaltSync(10);
 
-    const newUser: CreateUserDto = {
+    const newUser: AccountRegister.Request = {
       email: dto.email,
       password: hashSync(dto.password, salt),
       profile_photo: ''
@@ -43,7 +39,7 @@ export class UsersService {
     })
   }
 
-  async findUserByEmail(email: string): Promise<UserResponse> {
+  async findUserByEmail(email: string): Promise<AccountRegister.Response> {
     return await this.db.user.findUnique({
       where: {
         email: email

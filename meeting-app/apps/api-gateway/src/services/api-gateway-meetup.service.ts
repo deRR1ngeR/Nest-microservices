@@ -1,30 +1,32 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
+import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
+import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
+import { Observable } from 'rxjs';
 
 
 @Injectable()
 export class ApiGatewayMeetupService {
   constructor(@Inject('MEETING_SERVICE') private readonly meetingService: ClientProxy) { }
 
-  create(dto: CreateMeetupDto) {
-    return this.meetingService.send('createMeetup', dto);
+  async create(dto: MeetupCreate.Request): Promise<Observable<MeetupCreate.Response>> {
+    return this.meetingService.send(MeetupCreate.topic, dto);
   }
 
-  findAll() {
+  async findAll() {
     return this.meetingService.send('findAllMeetups', {})
   }
 
-  findById(id: string) {
+  async findById(id: string) {
     return this.meetingService.send('findMeetupById', id);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     return this.meetingService.send('deleteMeetup', id);
   }
 
-  update(id: string, dto: UpdateMeetupDto) {
+  async update(id: string, dto: UpdateMeetupDto): Promise<Observable<MeetupUpdate.Response>> {
     return this.meetingService.send('updateMeetup', { id: id, data: dto });
   }
 }
