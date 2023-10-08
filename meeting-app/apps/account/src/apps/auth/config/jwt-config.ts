@@ -6,6 +6,7 @@ export const getJWTConfig = (): JwtModuleAsyncOptions => ({
     inject: [ConfigService],
     useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        global: true,
+        expiresIn: configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+        global: true
     }),
 });

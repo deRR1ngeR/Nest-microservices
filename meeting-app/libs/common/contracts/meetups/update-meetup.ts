@@ -5,7 +5,6 @@ import { MeetupTypeResponse } from './types/response.meetup.type';
 import { UpdateMeetupDto } from './dtos/update-meetup.dto';
 
 export namespace MeetupUpdate {
-    export const topic = 'Meetup.Update.Command';
 
     export class Request {
         @ApiProperty()

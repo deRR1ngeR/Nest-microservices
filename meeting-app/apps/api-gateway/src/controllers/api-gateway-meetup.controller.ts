@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../guard/jwt.guard';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { Observable } from 'rxjs';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
+import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 
 @ApiTags('meetup')
 @Controller('meetup')
@@ -37,7 +38,7 @@ export class ApiGatewayMeetupController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id') id: MeetupDelete.Request) {
     return this.apiGatewayMeetupService.delete(id);
   }
 

@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsArray, IsDateString } from 'class-validator';
 
 export namespace MeetupCreate {
-    export const topic = 'Meetup.Create.Command';
 
     export class Request {
         @ApiProperty()

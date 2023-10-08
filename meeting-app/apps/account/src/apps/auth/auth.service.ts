@@ -1,27 +1,35 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { PrismaService } from 'libs/common/database/prisma.service';
-import { UsersService } from '../users/src/users.service';
+import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { compareSync } from 'bcryptjs';
-import { AccounLogin } from 'libs/common/contracts/account/account.login';
+import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
+import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
+import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payload.interface';
+import { serialize } from 'cookie';
+import { AccountValidate } from 'libs/common/contracts/account/account.validate';
+import { SessionsService } from '../sessions/src/sessions.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly db: PrismaService,
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
-    private readonly configService: ConfigService) { }
+    private readonly configService: ConfigService,
+    private readonly sessionService: SessionsService) { }
 
-  async validateUser(email: string, password: string): Promise<AccountRegister.Response> {
-    const user = await this.userService.findByEmailWithPassword(email);
+  async validateUser(data: AccountValidate.Request): Promise<AccountRegister.Response> {
+    const user = await this.userService.findByEmailWithPassword(data.email);
+
     if (!user)
       throw new RpcException(new UnauthorizedException('User with such email was not found'));
 
-    const isCorrectPassword = compareSync(password, user.password);
+    const isCorrectPassword = compareSync(data.password, user.password);
 
     if (!isCorrectPassword)
       throw new RpcException(new UnauthorizedException('Wrong password'));
@@ -33,15 +41,56 @@ export class AuthService {
     return await this.userService.createUser(dto);
   }
 
-  async login(dto: AccounLogin.Request): Promise<AccounLogin.Response> {
-    const { email, password } = dto;
-    const { id } = await this.validateUser(email, password);
-    console.log(id)
+  async login(payload: ITokenPayload): Promise<AccountLogin.ResponseWithRefreshToken> {
+    const user = await this.userService.findUserByEmail(payload.email.toString());
+    let access_token = await this.getAccessToken(payload);
+
+    const refreshToken = this.getJwtRefreshToken(payload);
+    await this.sessionService.createOrUpdateSession(user.id, refreshToken);
+
     return {
-      access_token: await this.jwtService.signAsync(
-        { id },
-        { expiresIn: '30s' }
-      )
+      access_token,
+      refreshToken
     }
+  }
+
+  async refresh(req: User): Promise<AccountRefresh.Response> {
+
+    const payload: ITokenPayload = { email: req.email };
+
+    const access_token = await this.getAccessToken(payload);
+
+    const refreshToken = this.getJwtRefreshToken(payload);
+
+    await this.sessionService.createOrUpdateSession(req.id, refreshToken);
+
+    return { access_token, refreshToken };
+  }
+
+  private getJwtRefreshToken(payload: ITokenPayload) {
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_TOKEN'),
+      expiresIn: `${this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')}s`
+    })
+    return refreshToken;
+  }
+
+
+  private async getAccessToken(payload: ITokenPayload) {
+    return this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN'),
+      expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
+    })
+  }
+
+  async getUserIfRefreshTokenMatches(email: string, refreshToken: string) {
+    const user = await this.userService.findUserByEmail(email);
+    const refreshTokenFromDB = await this.sessionService.getRefreshToken(user.id);
+
+    if (refreshToken !== refreshTokenFromDB.refreshToken) {
+      throw new ForbiddenException('Invalid refresh token');
+    }
+    return user;
+
   }
 }

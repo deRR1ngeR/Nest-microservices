@@ -8,6 +8,8 @@ import { ApiGatewayAuthService } from './services/api-gateway-auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthStrategy } from './strategy/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
+import { LocalStrategy } from './strategy/local.strategy';
+import { RefreshStrategy } from './strategy/refresh.strategy';
 
 @Module({
   imports: [
@@ -38,7 +40,12 @@ import { ConfigModule } from '@nestjs/config';
     }),
   ],
   controllers: [ApiGatewayMeetupController, ApiGatewayAuthController],
-  providers: [ApiGatewayMeetupService, ApiGatewayAuthService, JwtAuthStrategy],
+  providers: [ApiGatewayMeetupService,
+    ApiGatewayAuthService,
+    JwtAuthStrategy,
+    LocalStrategy,
+    RefreshStrategy],
+  exports: [ApiGatewayAuthService]
 })
 export class ApiGatewayModule { }
 

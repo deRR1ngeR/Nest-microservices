@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PrismaModule } from 'libs/common/database/prisma.module';
-import { UsersModule } from '../users/src/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { LocalStrategy } from './strategy/local.strategy';
 import { getJWTConfig } from './config/jwt-config';
+import { UsersModule } from '../users/users.module';
+import { SessionsModule } from '../sessions/src/sessions.module';
 
 @Module({
   imports: [
@@ -17,8 +17,9 @@ import { getJWTConfig } from './config/jwt-config';
       expandVariables: true,
     }),
     PassportModule,
-    JwtModule.registerAsync(getJWTConfig())],
+    JwtModule.registerAsync(getJWTConfig()),
+    SessionsModule],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService],
 })
 export class AuthModule { }

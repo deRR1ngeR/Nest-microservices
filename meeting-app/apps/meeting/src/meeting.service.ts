@@ -4,6 +4,7 @@ import { PrismaService } from 'libs/common/database/prisma.service';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
+import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 
 @Injectable()
 export class MeetingService {
@@ -51,7 +52,7 @@ export class MeetingService {
     }
   }
 
-  async delete(id: number): Promise<MeetupCreate.Response> {
+  async delete(id: number): Promise<MeetupDelete.Response> {
     try {
       return await this.db.meetup.delete({
         where: {
