@@ -6,6 +6,7 @@ import { PrismaService } from 'libs/common/database/prisma.service';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { RpcException } from '@nestjs/microservices';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 
 @Injectable()
 export class UsersService {
@@ -22,8 +23,9 @@ export class UsersService {
 
     const newUser: AccountRegister.Request = {
       email: dto.email,
+      name: dto.name,
       password: hashSync(dto.password, salt),
-      profile_photo: ''
+      profile_photo: dto.profile_photo
     }
 
     return this.db.user.create({
@@ -51,6 +53,27 @@ export class UsersService {
     return await this.db.user.findUnique({
       where: {
         email: email
+      }
+    })
+  }
+
+  async createUserWithouPassword(dto: AccountGoogleLogin.Request): Promise<AccountRegister.Response> {
+
+    const newUser: AccountRegister.Request = {
+      email: dto.email.toString(),
+      name: dto.name,
+      profile_photo: dto.profile_photo
+    }
+
+    return this.db.user.create({
+      data: {
+        ...newUser,
+        role: $Enums.Role.USER
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true
       }
     })
   }

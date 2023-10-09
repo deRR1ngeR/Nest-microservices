@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiGatewayAuthService } from '../services/api-gateway-auth.service';
 
@@ -9,6 +9,9 @@ import { Observable } from 'rxjs';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { LocalAuthGuard } from '../guard/local.guard';
 import { RefreshGuard } from '../guard/refresh.guard';
+import { GoogleOAuthGuard } from '../guard/google-oath.guard';
+import { GetGooglePayload } from '../decorators/get-google-payload.decorator';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -30,8 +33,19 @@ export class ApiGatewayAuthController {
 
     @UseGuards(RefreshGuard)
     @Post('refresh')
-    async refresh(@Req() req: AccountRefresh.ReqWithUser, @Res({ passthrough: true }) res: Response): Promise<AccountLogin.Response> {
+    async refresh(@Req() req: AccountRefresh.ReqWithUser, @Res({ passthrough: true }) res: Response): Promise<AccountRefresh.Response> {
         return this.apiGatewayAuthService.refresh(req, res);
     }
 
+    @Get('google/login')
+    @UseGuards(GoogleOAuthGuard)
+    async googleLogin() {
+        return { msg: 'Google authentication' };
+    }
+
+    @Get('google/callback')
+    @UseGuards(GoogleOAuthGuard)
+    handleRedirect(@GetGooglePayload() googlePayload: AccountGoogleLogin.Request, @Res({ passthrough: true }) res: Response) {
+        return this.apiGatewayAuthService.googleLogin(googlePayload, res);
+    }
 }

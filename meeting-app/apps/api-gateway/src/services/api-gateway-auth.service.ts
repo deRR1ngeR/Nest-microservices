@@ -10,6 +10,7 @@ import { AccountRegister } from 'libs/common/contracts/account/account.register'
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { ConfigService } from '@nestjs/config';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 
 @Injectable()
 export class ApiGatewayAuthService {
@@ -24,7 +25,7 @@ export class ApiGatewayAuthService {
         );;
     }
 
-    async login(dto: AccountLogin.Request, res: Response): Promise<AccountLogin.ResponseWithRefreshToken> {
+    async login(dto: AccountLogin.Request, res: Response): Promise<AccountLogin.Response> {
         let { access_token, refreshToken } = await this.authService.send(AccountLogin.topic, dto).pipe(
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
@@ -50,7 +51,6 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
-        console.log('Response ' + res)
         res.cookie(
             'access_token',
             access_token, {
@@ -81,5 +81,28 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         )
+    }
+
+    async googleLogin(googlePayload: AccountGoogleLogin.Request, res: Response): Promise<AccountLogin.Response> {
+        let { access_token, refreshToken } = await this.authService.send(AccountGoogleLogin.topic, googlePayload).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+        res.cookie(
+            'access_token',
+            access_token, {
+            httpOnly: true,
+            path: '/',
+            maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')
+        }
+        );
+        res.cookie('refresh_token', refreshToken, {
+            httpOnly: true,
+            path: '/',
+            maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')
+        });
+        return {
+            access_token, refreshToken
+        }
     }
 }

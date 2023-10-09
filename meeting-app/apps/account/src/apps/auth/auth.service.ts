@@ -14,6 +14,7 @@ import { serialize } from 'cookie';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { SessionsService } from '../sessions/src/sessions.service';
 import { User } from '@prisma/client';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +42,7 @@ export class AuthService {
     return await this.userService.createUser(dto);
   }
 
-  async login(payload: ITokenPayload): Promise<AccountLogin.ResponseWithRefreshToken> {
+  async login(payload: ITokenPayload): Promise<AccountLogin.Response> {
     const user = await this.userService.findUserByEmail(payload.email.toString());
     let access_token = await this.getAccessToken(payload);
 
@@ -77,7 +78,7 @@ export class AuthService {
 
 
   private async getAccessToken(payload: ITokenPayload) {
-    return this.jwtService.signAsync(payload, {
+    return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN'),
       expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
     })
@@ -92,5 +93,18 @@ export class AuthService {
     }
     return user;
 
+  }
+
+  async googleLogin(data: AccountGoogleLogin.Request): Promise<AccountLogin.Response> {
+    let user = await this.userService.findUserByEmail(data.email.toString())
+    if (!user) {
+      user = await this.userService.createUserWithouPassword(data);
+    }
+    const payload: ITokenPayload = { email: data.email };
+    let access_token = await this.getAccessToken(payload)
+    const refreshToken = this.getJwtRefreshToken(payload);
+    await this.sessionService.createOrUpdateSession(user.id, refreshToken);
+
+    return { access_token, refreshToken }
   }
 }

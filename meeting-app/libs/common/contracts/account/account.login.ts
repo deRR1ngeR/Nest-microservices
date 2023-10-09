@@ -14,13 +14,7 @@ export namespace AccountLogin {
         @IsString()
         password: string;
     }
-
     export class Response {
-        @ApiProperty()
-        access_token: string;
-    }
-
-    export class ResponseWithRefreshToken {
         @ApiProperty()
         access_token: string;
 

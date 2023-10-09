@@ -7,6 +7,7 @@ import { AccountRegister } from 'libs/common/contracts/account/account.register'
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { User } from '@prisma/client';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 
 @Controller()
 export class AuthController {
@@ -36,6 +37,11 @@ export class AuthController {
   @MessagePattern(AccountValidate.topic)
   async validateUser(@Payload() data: AccountValidate.Request) {
     return await this.authService.validateUser(data)
+  }
+
+  @MessagePattern(AccountGoogleLogin.topic)
+  async googleLogin(@Payload() data: AccountGoogleLogin.Request) {
+    return await this.authService.googleLogin(data);
   }
 
 }

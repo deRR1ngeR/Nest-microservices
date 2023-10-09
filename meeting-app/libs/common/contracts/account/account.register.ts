@@ -13,7 +13,11 @@ export namespace AccountRegister {
         email: string;
 
         @ApiProperty()
-        password: string;
+        password?: string;
+
+        @ApiProperty()
+        @IsString()
+        name: string;
 
         @ApiProperty({ required: false })
         @IsString()
