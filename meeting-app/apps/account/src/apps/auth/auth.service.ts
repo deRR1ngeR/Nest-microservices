@@ -10,7 +10,6 @@ import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payload.interface';
-import { serialize } from 'cookie';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { SessionsService } from '../sessions/src/sessions.service';
 import { User } from '@prisma/client';
@@ -35,7 +34,7 @@ export class AuthService {
     if (!isCorrectPassword)
       throw new RpcException(new UnauthorizedException('Wrong password'));
 
-    return { id: user.id, email: user.email, role: user.role }
+    return { id: user.id, email: user.email, role: user.role, isEmailConfirmed: user.isEmailConfirmed }
   }
 
   async register(dto: AccountRegister.Request) {
@@ -44,6 +43,9 @@ export class AuthService {
 
   async login(payload: ITokenPayload): Promise<AccountLogin.Response> {
     const user = await this.userService.findUserByEmail(payload.email.toString());
+    if (!user.isEmailConfirmed) {
+      throw new RpcException(new UnauthorizedException('Email is not confirmed'));
+    }
     let access_token = await this.getAccessToken(payload);
 
     const refreshToken = this.getJwtRefreshToken(payload);
@@ -98,7 +100,7 @@ export class AuthService {
   async googleLogin(data: AccountGoogleLogin.Request): Promise<AccountLogin.Response> {
     let user = await this.userService.findUserByEmail(data.email.toString())
     if (!user) {
-      user = await this.userService.createUserWithouPassword(data);
+      user = await this.userService.createUserWithoutPassword(data);
     }
     const payload: ITokenPayload = { email: data.email };
     let access_token = await this.getAccessToken(payload)

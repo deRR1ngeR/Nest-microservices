@@ -10,6 +10,10 @@ import { ConfigModule } from '@nestjs/config';
 import { LocalStrategy } from './strategy/local.strategy';
 import { RefreshStrategy } from './strategy/refresh.strategy';
 import { GoogleStrategy } from './strategy/google.strategy';
+import { EmailConfirmationService } from './services/email-confirmation.service';
+import EmailService from './services/email.service';
+import { JwtModule } from '@nestjs/jwt';
+import { getJWTConfig } from 'apps/account/src/apps/auth/config/jwt-config';
 
 @Module({
   imports: [
@@ -38,6 +42,8 @@ import { GoogleStrategy } from './strategy/google.strategy';
     ]), ConfigModule.forRoot({
       expandVariables: true,
     }),
+    JwtModule.registerAsync(getJWTConfig()),
+
   ],
   controllers: [ApiGatewayMeetupController, ApiGatewayAuthController],
   providers: [ApiGatewayMeetupService,
@@ -45,7 +51,9 @@ import { GoogleStrategy } from './strategy/google.strategy';
     JwtAuthStrategy,
     LocalStrategy,
     RefreshStrategy,
-    GoogleStrategy],
+    GoogleStrategy,
+    EmailConfirmationService,
+    EmailService],
   exports: [ApiGatewayAuthService]
 })
 export class ApiGatewayModule { }

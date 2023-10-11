@@ -3,14 +3,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Response } from 'express';
 
 import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 import { Observable, catchError, throwError } from 'rxjs';
 import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
-import { ConfigService } from '@nestjs/config';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
+import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
 
 @Injectable()
 export class ApiGatewayAuthService {
@@ -30,19 +32,7 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
-        res.cookie(
-            'access_token',
-            access_token, {
-            httpOnly: true,
-            path: '/',
-            maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')
-        }
-        );
-        res.cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            path: '/',
-            maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')
-        });
+        this.sendCookie(res, access_token, refreshToken);
         return { access_token, refreshToken }
     }
 
@@ -51,19 +41,7 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
-        res.cookie(
-            'access_token',
-            access_token, {
-            httpOnly: true,
-            path: '/',
-            maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')
-        }
-        );
-        res.cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            path: '/',
-            maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')
-        });
+        this.sendCookie(res, access_token, refreshToken);
         return { access_token, refreshToken }
 
     }
@@ -88,6 +66,24 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
+        this.sendCookie(res, access_token, refreshToken);
+        return {
+            access_token, refreshToken
+        }
+    }
+
+    async getUserByEmail(email: AccountGetUserByEmail.Request): Promise<AccountRegister.Response> {
+        return await this.authService.send(AccountGetUserByEmail.topic, email).toPromise()
+    }
+
+    async markEmailAsConfirmed(email: AccountMarkEmailAsConfirmed.Request): Promise<Observable<AccountMarkEmailAsConfirmed.Response>> {
+        return await this.authService.send(AccountMarkEmailAsConfirmed.topic, email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+    }
+
+    async sendCookie(res: Response, access_token: string, refreshToken: string) {
         res.cookie(
             'access_token',
             access_token, {
@@ -101,8 +97,5 @@ export class ApiGatewayAuthService {
             path: '/',
             maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')
         });
-        return {
-            access_token, refreshToken
-        }
     }
 }

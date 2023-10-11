@@ -1,5 +1,4 @@
-import { IsEmail, IsString } from 'class-validator';
-import ITokenPayload from './interfaces/token-payload.interface';
+import { IsBoolean, IsEmail, IsString } from 'class-validator';
 
 export namespace AccountGoogleLogin {
     export const topic = 'Account.GoogleLogin.Command';
@@ -14,7 +13,6 @@ export namespace AccountGoogleLogin {
 
         @IsString()
         profile_photo: string;
-
     }
 
 

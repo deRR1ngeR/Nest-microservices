@@ -33,6 +33,9 @@ export namespace AccountRegister {
         email: string;
 
         @ApiProperty()
+        isEmailConfirmed: boolean;
+
+        @ApiProperty()
         role: $Enums.Role;
     }
 

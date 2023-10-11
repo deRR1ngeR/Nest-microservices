@@ -8,10 +8,14 @@ import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { User } from '@prisma/client';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
+import { UsersService } from '../users/users.service';
+import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService,
+    private readonly userService: UsersService) { }
 
   @MessagePattern('register')
   async register(@Payload() data: AccountRegister.Request) {
@@ -42,6 +46,16 @@ export class AuthController {
   @MessagePattern(AccountGoogleLogin.topic)
   async googleLogin(@Payload() data: AccountGoogleLogin.Request) {
     return await this.authService.googleLogin(data);
+  }
+
+  @MessagePattern(AccountGetUserByEmail.topic)
+  async getUserByEmail(@Payload() email: string) {
+    return await this.userService.findUserByEmail(email)
+  }
+
+  @MessagePattern(AccountMarkEmailAsConfirmed.topic)
+  async markEmailAsConfirmed(@Payload() data: AccountMarkEmailAsConfirmed.Request) {
+    return await this.userService.markEmailAsConfirmed(data);
   }
 
 }
