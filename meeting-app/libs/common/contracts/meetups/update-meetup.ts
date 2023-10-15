@@ -37,6 +37,9 @@ export namespace MeetupUpdate {
 
         @ApiProperty()
         latitude: Decimal;
+
+        @ApiProperty()
+        creatorId: number;
     }
 
 }

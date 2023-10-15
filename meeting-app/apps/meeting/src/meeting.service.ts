@@ -7,16 +7,18 @@ import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 import * as geolib from 'geolib';
 import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
+import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
 
 @Injectable()
 export class MeetingService {
   constructor(private readonly db: PrismaService) { }
 
-  async create(dto: MeetupCreate.Request) {
+  async create(data: CreateMeetupDto, id: number) {
+    console.log(data, id)
     return await this.db.meetup.create({
       data: {
-        ...dto,
-        creatorId: 1
+        ...data,
+        creatorId: id
       }
     })
   }

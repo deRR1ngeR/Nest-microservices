@@ -9,4 +9,5 @@ export namespace MeetupCommands {
 
     export const meetupGetById = 'Meetup.GetById.Command';
 
+    export const meetupInviteUsers = 'Meetup.InviteUsers.Command';
 }

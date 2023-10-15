@@ -13,7 +13,7 @@ import { GoogleOAuthGuard } from '../guards/google-oath.guard';
 import { GetGooglePayload } from '../decorators/get-google-payload.decorator';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 import { EmailConfirmationService } from '../services/email-confirmation.service';
-import ConfirmEmailDto from 'libs/common/contracts/account/interfaces/ConfirmEmailDto';
+import ConfirmEmailDto from 'libs/common/contracts/account/interfaces/confirmEmailDto';
 import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 import { Roles } from '../decorators/roles.decorator';
 import { $Enums, Role } from '@prisma/client';

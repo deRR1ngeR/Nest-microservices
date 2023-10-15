@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { ApiGatewayMeetupService } from '../services/api-gateway-meetup.service';
@@ -9,6 +9,9 @@ import { Observable } from 'rxjs';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
+import { MeetupInviteUsers } from 'libs/common/contracts/meetups/meetup.inviteUsers';
+import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
+import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
 
 @ApiTags('meetup')
 @Controller('meetup')
@@ -18,8 +21,8 @@ export class ApiGatewayMeetupController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createMeetupDto: MeetupCreate.Request): Promise<Observable<MeetupCreate.Response>> {
-    return this.apiGatewayMeetupService.create(createMeetupDto);
+  async create(@Body() createMeetupDto: CreateMeetupDto, @Req() req: RequestWithUser): Promise<Observable<MeetupCreate.Response>> {
+    return this.apiGatewayMeetupService.create(createMeetupDto, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,5 +51,12 @@ export class ApiGatewayMeetupController {
   @HttpCode(HttpStatus.ACCEPTED)
   async update(@Param('id') id: string, @Body() updateMeetupDto: UpdateMeetupDto): Promise<Observable<MeetupUpdate.Response>> {
     return this.apiGatewayMeetupService.update(id, updateMeetupDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('inviteUsers')
+  @HttpCode(HttpStatus.OK)
+  async inviteUsers(@Body() data: MeetupInviteUsers.Request) {
+
   }
 }

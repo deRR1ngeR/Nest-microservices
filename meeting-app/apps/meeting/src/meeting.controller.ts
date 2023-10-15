@@ -14,7 +14,7 @@ export class MeetingController {
 
   @MessagePattern(MeetupCommands.meetupCreate)
   async create(@Payload() data: MeetupCreate.Request): Promise<MeetupCreate.Response> {
-    return await this.meetingService.create(data);
+    return await this.meetingService.create(data.data, data.id);
   }
 
   @MessagePattern(MeetupCommands.meetupGetAll)
