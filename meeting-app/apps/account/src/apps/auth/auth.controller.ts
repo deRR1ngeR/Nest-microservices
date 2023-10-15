@@ -1,16 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Controller, ForbiddenException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 
 import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
 import { UsersService } from '../users/users.service';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
+import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 
 @Controller()
 export class AuthController {
@@ -58,4 +59,12 @@ export class AuthController {
     return await this.userService.markEmailAsConfirmed(data);
   }
 
+  @MessagePattern(AccountRoleUpdate.topic)
+  async roleUpdate(@Payload() data: AccountRoleUpdate.Request): Promise<AccountRegister.Response> {
+    const user = await this.userService.findUserByEmail(data.email);
+    if (user.role != Role.USER) {
+      throw new RpcException(new ForbiddenException('This user already has the organizer role'))
+    }
+    return await this.userService.roleUpdate(data.email);
+  }
 }

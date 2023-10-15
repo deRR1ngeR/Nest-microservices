@@ -7,10 +7,13 @@ import { Request as RequestType } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payload.interface';
+import { ApiGatewayAuthService } from '../services/api-gateway-auth.service';
+import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
-    constructor(private readonly configService: ConfigService) {
+    constructor(private readonly configService: ConfigService,
+        private readonly apiGatewayAuthService: ApiGatewayAuthService) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
                 JwtAuthStrategy.extractJWT,
@@ -26,7 +29,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
         }
         return null;
     }
-    async validate(payload: ITokenPayload) {
-        return { id: payload.email };
+    async validate(payload: AccountGetUserByEmail.Request) {
+        return await this.apiGatewayAuthService.getUserByEmail(payload);
     }
 }

@@ -7,13 +7,18 @@ import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { Observable } from 'rxjs';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
-import { LocalAuthGuard } from '../guard/local.guard';
-import { RefreshGuard } from '../guard/refresh.guard';
-import { GoogleOAuthGuard } from '../guard/google-oath.guard';
+import { LocalAuthGuard } from '../guards/local.guard';
+import { RefreshGuard } from '../guards/refresh.guard';
+import { GoogleOAuthGuard } from '../guards/google-oath.guard';
 import { GetGooglePayload } from '../decorators/get-google-payload.decorator';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 import { EmailConfirmationService } from '../services/email-confirmation.service';
 import ConfirmEmailDto from 'libs/common/contracts/account/interfaces/ConfirmEmailDto';
+import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
+import { Roles } from '../decorators/roles.decorator';
+import { $Enums, Role } from '@prisma/client';
+import { RolesGuard } from '../guards/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -59,5 +64,12 @@ export class ApiGatewayAuthController {
         const email = await this.emailConfirmationService.decodeConfirmationToken(confirmationData.acctoken);
         this.apiGatewayAuthService.sendCookie(res, confirmationData.acctoken, confirmationData.reftoken)
         return await this.emailConfirmationService.confirmEmail(email);
+    }
+
+    @Roles($Enums.Role.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Get('roleUpgrade')
+    async roleUpdate(@Query() data: AccountRoleUpdate.Request): Promise<AccountRegister.Response> {
+        return await this.apiGatewayAuthService.roleUpdate(data);
     }
 }

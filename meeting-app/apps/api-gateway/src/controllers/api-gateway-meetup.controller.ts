@@ -3,7 +3,7 @@ import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { ApiGatewayMeetupService } from '../services/api-gateway-meetup.service';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
-import { JwtAuthGuard } from '../guard/jwt.guard';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { Observable } from 'rxjs';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';

@@ -13,6 +13,7 @@ import { AccountValidate } from 'libs/common/contracts/account/account.validate'
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
+import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 
 @Injectable()
 export class ApiGatewayAuthService {
@@ -72,12 +73,19 @@ export class ApiGatewayAuthService {
         }
     }
 
-    async getUserByEmail(email: AccountGetUserByEmail.Request): Promise<AccountRegister.Response> {
-        return await this.authService.send(AccountGetUserByEmail.topic, email).toPromise()
+    async getUserByEmail(data: AccountGetUserByEmail.Request): Promise<AccountRegister.Response> {
+        return await this.authService.send(AccountGetUserByEmail.topic, data.email).toPromise()
     }
 
     async markEmailAsConfirmed(email: AccountMarkEmailAsConfirmed.Request): Promise<Observable<AccountMarkEmailAsConfirmed.Response>> {
         return await this.authService.send(AccountMarkEmailAsConfirmed.topic, email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+    }
+
+    async roleUpdate(email: AccountRoleUpdate.Request): Promise<AccountRegister.Response> {
+        return await this.authService.send(AccountRoleUpdate.topic, email).pipe(
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();

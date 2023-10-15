@@ -16,7 +16,7 @@ export class MeetingService {
     return await this.db.meetup.create({
       data: {
         ...dto,
-        createdBy: 1
+        creatorId: 1
       }
     })
   }

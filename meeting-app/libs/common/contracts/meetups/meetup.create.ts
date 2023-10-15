@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Decimal } from '@prisma/client/runtime/library';
-import { IsString, IsOptional, IsArray, IsDateString, IsDecimal, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsDateString, IsNumber } from 'class-validator';
 
 export namespace MeetupCreate {
 

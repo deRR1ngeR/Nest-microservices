@@ -15,8 +15,9 @@ model Meetup {
   date        DateTime
   longitude   Decimal
   latitude    Decimal
-  createdBy   Int
-  users       UserMeetup[]
+  createdBy   User         @relation(fields: [creatorId], references: [id])
+  creatorId   Int          @map("creator_id")
+  UserMeetup  UserMeetup[]
 
   @@map("meetups")
 }
@@ -27,8 +28,9 @@ model User {
   password         String?
   name             String
   profile_photo    String?
-  isEmailConfirmed Boolean
-  meetings         UserMeetup[]
+  isEmailConfirmed Boolean      @map("is_email_confirmed")
+  createdMeetings  Meetup[]
+  invitedMeetings  UserMeetup[]
   role             Role
   session          Session?
 
@@ -56,4 +58,5 @@ model UserMeetup {
 enum Role {
   USER
   ORGANIZER
+  ADMIN
 }

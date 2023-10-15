@@ -8,6 +8,7 @@ import { RpcException } from '@nestjs/microservices';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
+import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 
 @Injectable()
 export class UsersService {
@@ -48,6 +49,12 @@ export class UsersService {
     return await this.db.user.findUnique({
       where: {
         email
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isEmailConfirmed: true
       }
     });
   }
@@ -97,6 +104,17 @@ export class UsersService {
         email: true,
         role: true,
         isEmailConfirmed: true
+      }
+    })
+  }
+
+  async roleUpdate(data: string): Promise<AccountRegister.Response> {
+    return await this.db.user.update({
+      where: {
+        email: data
+      },
+      data: {
+        role: $Enums.Role.ORGANIZER
       }
     })
   }
