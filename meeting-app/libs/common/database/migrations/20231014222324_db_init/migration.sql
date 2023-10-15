@@ -8,7 +8,8 @@ CREATE TABLE "meetups" (
     "description" TEXT,
     "tags" TEXT[],
     "date" TIMESTAMP(3) NOT NULL,
-    "location" TEXT NOT NULL,
+    "longitude" DECIMAL(65,30) NOT NULL,
+    "latitude" DECIMAL(65,30) NOT NULL,
     "createdBy" INTEGER NOT NULL,
 
     CONSTRAINT "meetups_pkey" PRIMARY KEY ("id")
@@ -18,8 +19,10 @@ CREATE TABLE "meetups" (
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "profile_photo" TEXT NOT NULL,
+    "password" TEXT,
+    "name" TEXT NOT NULL,
+    "profile_photo" TEXT,
+    "isEmailConfirmed" BOOLEAN NOT NULL,
     "role" "Role" NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")

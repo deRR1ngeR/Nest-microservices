@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, IsDateString } from 'class-validator';
+import { Decimal } from '@prisma/client/runtime/library';
+import { IsString, IsOptional, IsArray, IsDateString, IsDecimal, IsNumber } from 'class-validator';
 
 export namespace MeetupCreate {
 
@@ -24,8 +25,12 @@ export namespace MeetupCreate {
         date: Date;
 
         @ApiProperty()
-        @IsString()
-        location: string;
+        @IsNumber()
+        longitude: Decimal;
+
+        @ApiProperty()
+        @IsNumber()
+        latitude: Decimal;
     }
 
     export class Response {
@@ -47,6 +52,9 @@ export namespace MeetupCreate {
         date: Date;
 
         @ApiProperty()
-        location: string;
+        longitude: Decimal;
+
+        @ApiProperty()
+        latitude: Decimal;
     }
 }

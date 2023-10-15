@@ -13,7 +13,8 @@ model Meetup {
   description String?
   tags        String[]
   date        DateTime
-  location    String
+  longitude   Decimal
+  latitude    Decimal
   createdBy   Int
   users       UserMeetup[]
 

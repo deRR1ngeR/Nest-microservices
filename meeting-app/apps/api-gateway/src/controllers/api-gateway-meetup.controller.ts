@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { ApiGatewayMeetupService } from '../services/api-gateway-meetup.service';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
@@ -8,6 +8,7 @@ import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { Observable } from 'rxjs';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
+import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 
 @ApiTags('meetup')
 @Controller('meetup')
@@ -24,8 +25,8 @@ export class ApiGatewayMeetupController {
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll() {
-    return this.apiGatewayMeetupService.findAll()
+  async findAll(@Query() position: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
+    return this.apiGatewayMeetupService.findAll(position)
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,6 +1,7 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
+import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 import { MeetupCommands } from 'libs/common/contracts/meetups/meetup.commands';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
@@ -16,8 +17,8 @@ export class ApiGatewayMeetupService {
     return this.meetingService.send(MeetupCommands.meetupCreate, dto);
   }
 
-  async findAll() {
-    return this.meetingService.send(MeetupCommands.meetupGetAll, {})
+  async findAll(position: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
+    return await this.meetingService.send(MeetupCommands.meetupGetAll, position).toPromise()
   }
 
   async findById(id: string) {

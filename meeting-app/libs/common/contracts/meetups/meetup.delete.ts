@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Decimal } from '@prisma/client/runtime/library';
+import { IsDecimal } from 'class-validator';
 
 export namespace MeetupDelete {
 
@@ -25,6 +27,11 @@ export namespace MeetupDelete {
         date: Date;
 
         @ApiProperty()
-        location: string;
+        @IsDecimal()
+        longitude: Decimal;
+
+        @ApiProperty()
+        @IsDecimal()
+        latitude: Decimal;
     }
 }

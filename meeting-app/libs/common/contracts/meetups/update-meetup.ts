@@ -1,8 +1,8 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
-import { MeetupCreate } from './meetup.create';
 import { MeetupTypeResponse } from './types/response.meetup.type';
 import { UpdateMeetupDto } from './dtos/update-meetup.dto';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export namespace MeetupUpdate {
 
@@ -33,7 +33,10 @@ export namespace MeetupUpdate {
         date: Date;
 
         @ApiProperty()
-        location: string;
+        longitude: Decimal;
+
+        @ApiProperty()
+        latitude: Decimal;
     }
 
 }

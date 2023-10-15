@@ -6,6 +6,7 @@ import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 import { MeetupCommands } from 'libs/common/contracts/meetups/meetup.commands';
+import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 
 @Controller()
 export class MeetingController {
@@ -17,8 +18,8 @@ export class MeetingController {
   }
 
   @MessagePattern(MeetupCommands.meetupGetAll)
-  async findAll() {
-    return await this.meetingService.findAll();
+  async findAll(@Payload() data: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
+    return await this.meetingService.findAll(data);
   }
 
   @MessagePattern(MeetupCommands.meetupGetById)

@@ -5,12 +5,14 @@ import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetu
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
+import * as geolib from 'geolib';
+import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 
 @Injectable()
 export class MeetingService {
   constructor(private readonly db: PrismaService) { }
 
-  async create(dto: MeetupCreate.Request): Promise<MeetupCreate.Response> {
+  async create(dto: MeetupCreate.Request) {
     return await this.db.meetup.create({
       data: {
         ...dto,
@@ -19,11 +21,23 @@ export class MeetingService {
     })
   }
 
-  async findAll(): Promise<MeetupCreate.Response[]> {
-    const result = await this.db.meetup.findMany();
-    if (!result)
+  async findAll(position: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
+
+    const meetups = await this.db.meetup.findMany();
+    if (!meetups)
       throw new HttpException('Requested content not found', HttpStatus.NOT_FOUND)
-    return result;
+
+    if (Object.keys(position).length != 0) {
+      const { lat, lon } = position;
+
+      const locationsInRadius = meetups.filter(meetup => {
+        const distance = geolib.getDistance({ lat, lon }, { latitude: Number(meetup.latitude), longitude: Number(meetup.longitude) });
+        return distance <= 100000; // 100 км в метрах
+      });
+      return locationsInRadius;
+    }
+
+    return meetups;
   }
 
   async findById(id: number): Promise<MeetupCreate.Response> {
