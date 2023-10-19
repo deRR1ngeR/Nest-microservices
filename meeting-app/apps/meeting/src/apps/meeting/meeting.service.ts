@@ -14,7 +14,6 @@ export class MeetingService {
   constructor(private readonly db: PrismaService) { }
 
   async create(data: CreateMeetupDto, id: number) {
-    console.log(data, id)
     return await this.db.meetup.create({
       data: {
         ...data,

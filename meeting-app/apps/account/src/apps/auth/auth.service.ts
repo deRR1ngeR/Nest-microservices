@@ -13,7 +13,7 @@ import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payloa
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { SessionsService } from '../sessions/src/sessions.service';
 import { User } from '@prisma/client';
-import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 
 @Injectable()
 export class AuthService {

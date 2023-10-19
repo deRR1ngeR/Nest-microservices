@@ -10,4 +10,11 @@ export namespace MeetupCommands {
     export const meetupGetById = 'Meetup.GetById.Command';
 
     export const meetupInviteUsers = 'Meetup.InviteUsers.Command';
+
+    export const meetupDeleteUser = 'Meetup.DeleteUserFromMeetup.Command';
+
+    export const meetupFindUserMeetup = 'Meetup.FindUserMeetups.Command';
+
+    export const meetupGenerateCsvReport = 'Account.GenerateCsvReport.Command';
+
 }

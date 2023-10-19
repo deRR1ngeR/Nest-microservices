@@ -7,16 +7,20 @@ import { AccountRegister } from 'libs/common/contracts/account/account.register'
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
 import { Role, User } from '@prisma/client';
-import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
 import { UsersService } from '../users/users.service';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
 import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
+import { AccountLogout } from 'libs/common/contracts/account/account.logout';
+import { SessionsService } from '../sessions/src/sessions.service';
+import { AccountAvatarUpdate } from 'libs/common/contracts/account/account.avatarUpdate';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService,
-    private readonly userService: UsersService) { }
+    private readonly userService: UsersService,
+    private readonly sessionService: SessionsService) { }
 
   @MessagePattern('register')
   async register(@Payload() data: AccountRegister.Request) {
@@ -66,5 +70,14 @@ export class AuthController {
       throw new RpcException(new ForbiddenException('This user already has the organizer role'))
     }
     return await this.userService.roleUpdate(data.email);
+  }
+
+  @MessagePattern(AccountLogout.topic)
+  async logout(@Payload() data: AccountLogout.Request) {
+    return await this.sessionService.logout(data.userId)
+  }
+
+  async avatarUpdate(@Payload() data: AccountAvatarUpdate.Request) {
+
   }
 }

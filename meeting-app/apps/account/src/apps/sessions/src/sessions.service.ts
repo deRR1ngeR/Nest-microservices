@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { PrismaService } from 'libs/common/database/prisma.service';
 
 @Injectable()
@@ -26,5 +27,19 @@ export class SessionsService {
         userId
       }
     })
+  }
+
+  async logout(userId: number) {
+    try {
+      return await this.db.session.delete({
+        where: {
+          userId
+        }
+      })
+    }
+    catch (err) {
+      throw new RpcException(new NotFoundException('session was not found'))
+    }
+
   }
 }

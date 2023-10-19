@@ -1,5 +1,5 @@
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
-import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 
 
 export const GetGooglePayload = createParamDecorator(

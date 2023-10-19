@@ -2,7 +2,7 @@
 /dist
 /node_modules
 .env
-
+/mykey.json
 # Logs
 logs
 *.log

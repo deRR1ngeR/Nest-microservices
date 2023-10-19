@@ -10,15 +10,20 @@ import { AccountLogin } from 'libs/common/contracts/account/account.login';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountRefresh } from 'libs/common/contracts/account/account.refresh';
 import { AccountValidate } from 'libs/common/contracts/account/account.validate';
-import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
 import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
+import { AccountLogout } from 'libs/common/contracts/account/account.logout';
+import { AwsService } from '../utils/google-storage';
+import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payload.interface';
+import { AccountAvatarUpdate } from 'libs/common/contracts/account/account.avatarUpdate';
 
 @Injectable()
 export class ApiGatewayAuthService {
     constructor(@Inject('AUTH_SERVICE') private readonly authService: ClientProxy,
-        private readonly configService: ConfigService) { }
+        private readonly configService: ConfigService,
+        private readonly awsService: AwsService) { }
 
     register(dto: AccountRegister.Request): Observable<AccountRegister.Response> {
         return this.authService.send('register', dto).pipe(
@@ -89,6 +94,22 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
+    }
+
+    async logout(userId: number, res: Response) {
+        res.cookie('access_token', '', { expires: new Date(0) })
+        res.cookie('refresh_token', '', { expires: new Date(0) })
+        return await this.authService.send(AccountLogout.topic, { userId }).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+    }
+
+    async avatarUpload(file: Express.Multer.File, res: Response, userId: number) {
+        const result = this.awsService.upload(file, res);
+        if (result.statusCode == 201) {
+            await this.authService.send(AccountAvatarUpdate.topic, { userId, fileName: file.originalname })
+        }
     }
 
     async sendCookie(res: Response, access_token: string, refreshToken: string) {

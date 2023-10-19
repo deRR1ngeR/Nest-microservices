@@ -6,7 +6,7 @@ import { PrismaService } from 'libs/common/database/prisma.service';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { RpcException } from '@nestjs/microservices';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
-import { AccountGoogleLogin } from 'libs/common/contracts/account/account.google-login';
+import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
 import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 
@@ -118,4 +118,5 @@ export class UsersService {
       }
     })
   }
+
 }

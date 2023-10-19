@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export namespace MeetupInviteUsers {
+export namespace AccountLogout {
+    export const topic = 'Account.Logout.Command';
 
     export class Request {
-        meetupId: number;
+        @ApiProperty()
         userId: number;
     }
 }

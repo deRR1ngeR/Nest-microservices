@@ -16,22 +16,22 @@
         "tsConfigPath": "apps/main/tsconfig.app.json"
       }
     },
-    "api-gateway": {
+    "meeting": {
       "type": "application",
-      "root": "apps/api-gateway",
+      "root": "apps/meeting",
       "entryFile": "main",
-      "sourceRoot": "apps/api-gateway/src",
+      "sourceRoot": "apps/meeting/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+        "tsConfigPath": "apps/meeting/tsconfig.app.json"
       }
     },
-    "account": {
+    "user-meetup": {
       "type": "application",
-      "root": "apps/account/auth",
+      "root": "apps/user-meetup",
       "entryFile": "main",
-      "sourceRoot": "apps/account/apps/auth/src",
+      "sourceRoot": "apps/user-meetup/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/account/tsconfig.app.json"
+        "tsConfigPath": "apps/user-meetup/tsconfig.app.json"
       }
     }
   }

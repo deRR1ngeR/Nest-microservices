@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { MeetingModule } from './meeting.module';
 import { Transport } from '@nestjs/microservices';
+import { MeetingModule } from './apps/meeting/meeting.module';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(MeetingModule,

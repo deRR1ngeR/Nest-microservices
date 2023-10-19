@@ -14,10 +14,22 @@ import { EmailConfirmationService } from './services/email-confirmation.service'
 import EmailService from './services/email.service';
 import { JwtModule } from '@nestjs/jwt';
 import { getJWTConfig } from 'apps/account/src/apps/auth/config/jwt-config';
+import { AwsService } from './utils/google-storage';
 
 @Module({
   imports: [
     ClientsModule.register([
+      {
+        name: 'MEETING_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'meeting_queue',
+          queueOptions: {
+            durable: false
+          }
+        }
+      },
       {
         name: 'AUTH_SERVICE',
         transport: Transport.RMQ,
@@ -28,17 +40,7 @@ import { getJWTConfig } from 'apps/account/src/apps/auth/config/jwt-config';
             durable: false
           }
         }
-      }, {
-        name: 'MEETING_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'meeting_queue',
-          queueOptions: {
-            durable: false
-          }
-        }
-      }
+      },
     ]), ConfigModule.forRoot({
       expandVariables: true,
     }),
@@ -53,7 +55,8 @@ import { getJWTConfig } from 'apps/account/src/apps/auth/config/jwt-config';
     RefreshStrategy,
     GoogleStrategy,
     EmailConfirmationService,
-    EmailService],
+    EmailService,
+    AwsService],
   exports: [ApiGatewayAuthService]
 })
 export class ApiGatewayModule { }
