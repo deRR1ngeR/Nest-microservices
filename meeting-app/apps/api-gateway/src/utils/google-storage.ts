@@ -21,14 +21,13 @@ export class AwsService {
         return storage.bucket(this.configService.get('GOOGLE.storageBucket'));
     }
 
-    upload(file: Express.Multer.File, res: Response): Response {
+    upload(file: Express.Multer.File, res: Response) {
         try {
 
             const bucket = this.getBucket();
             const blob = bucket.file(file.originalname);
             const blobStream = blob.createWriteStream();
             blobStream.end(file.buffer);
-            return res.status(201).send("Success");
         } catch (error) {
             res.status(500).send(error);
         }

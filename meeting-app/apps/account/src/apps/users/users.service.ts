@@ -8,7 +8,6 @@ import { RpcException } from '@nestjs/microservices';
 import { AccountRegister } from 'libs/common/contracts/account/account.register';
 import { AccountGoogleLogin } from 'libs/common/contracts/account/account.googleLogin';
 import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/account.markEmailAsConfirmed';
-import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 
 @Injectable()
 export class UsersService {
@@ -119,4 +118,36 @@ export class UsersService {
     })
   }
 
+  async avatarUpload(userId: number, fileName: string) {
+    return await this.db.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        profile_photo: fileName
+      }
+    })
+  }
+
+  async getAvatar(email: string) {
+    return await this.db.user.findUnique({
+      where: {
+        email
+      },
+      select: {
+        profile_photo: true
+      }
+    })
+  }
+
+  async avatarRemove(email: string) {
+    return await this.db.user.update({
+      where: {
+        email
+      },
+      data: {
+        profile_photo: null
+      }
+    })
+  }
 }

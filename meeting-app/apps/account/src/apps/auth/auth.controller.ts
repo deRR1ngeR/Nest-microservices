@@ -15,6 +15,8 @@ import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpd
 import { AccountLogout } from 'libs/common/contracts/account/account.logout';
 import { SessionsService } from '../sessions/src/sessions.service';
 import { AccountAvatarUpdate } from 'libs/common/contracts/account/account.avatarUpdate';
+import { AccountGetUserAvatar } from 'libs/common/contracts/account/account.getUserFile';
+import { AccountAvatarRemove } from 'libs/common/contracts/account/account.avatarRemove';
 
 @Controller()
 export class AuthController {
@@ -77,7 +79,18 @@ export class AuthController {
     return await this.sessionService.logout(data.userId)
   }
 
-  async avatarUpdate(@Payload() data: AccountAvatarUpdate.Request) {
+  @MessagePattern(AccountAvatarUpdate.topic)
+  async avatarUpdate(@Payload() { userId, fileName }: AccountAvatarUpdate.Request) {
+    return await this.userService.avatarUpload(userId, fileName)
+  }
 
+  @MessagePattern(AccountGetUserAvatar.topic)
+  async getUserAvatar(@Payload() email: string) {
+    return await this.userService.getAvatar(email);
+  }
+
+  @MessagePattern(AccountAvatarRemove.topic)
+  async avatarRemove(@Payload() email: string) {
+    return await this.userService.avatarRemove(email)
   }
 }

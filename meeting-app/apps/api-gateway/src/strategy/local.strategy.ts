@@ -4,7 +4,6 @@ import { RpcException } from '@nestjs/microservices';
 
 import { Strategy } from 'passport-local';
 
-import { AuthService } from '../../../account/src/apps/auth/auth.service';
 import { ApiGatewayAuthService } from '../services/api-gateway-auth.service';
 
 @Injectable()

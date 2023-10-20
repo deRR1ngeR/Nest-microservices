@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { Response } from 'express';
 
@@ -16,8 +16,10 @@ import { AccountMarkEmailAsConfirmed } from 'libs/common/contracts/account/accou
 import { AccountRoleUpdate } from 'libs/common/contracts/account/account.roleUpdate';
 import { AccountLogout } from 'libs/common/contracts/account/account.logout';
 import { AwsService } from '../utils/google-storage';
-import ITokenPayload from 'libs/common/contracts/account/interfaces/token-payload.interface';
 import { AccountAvatarUpdate } from 'libs/common/contracts/account/account.avatarUpdate';
+import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
+import { AccountGetUserAvatar } from 'libs/common/contracts/account/account.getUserFile';
+import { AccountAvatarRemove } from 'libs/common/contracts/account/account.avatarRemove';
 
 @Injectable()
 export class ApiGatewayAuthService {
@@ -64,7 +66,7 @@ export class ApiGatewayAuthService {
         return this.authService.send(AccountValidate.topic, data).pipe(
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
-        )
+        ).toPromise()
     }
 
     async googleLogin(googlePayload: AccountGoogleLogin.Request, res: Response): Promise<AccountLogin.Response> {
@@ -105,11 +107,50 @@ export class ApiGatewayAuthService {
         ).toPromise();
     }
 
-    async avatarUpload(file: Express.Multer.File, res: Response, userId: number) {
-        const result = this.awsService.upload(file, res);
-        if (result.statusCode == 201) {
-            await this.authService.send(AccountAvatarUpdate.topic, { userId, fileName: file.originalname })
+    async avatarUpload(file: Express.Multer.File, req: RequestWithUser, res: Response, userId: number) {
+        file.originalname = `${req.user.email}_${file.originalname}`;
+        let result = await this.authService.send(AccountAvatarUpdate.topic, { userId, fileName: file.originalname }).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+        this.awsService.upload(file, res);
+        return;
+    }
+
+    async avatarDownload(email: string) {
+        const bucket = this.awsService.getBucket();
+
+        const { profile_photo } = await this.authService.send(AccountGetUserAvatar.topic, email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+
+
+        const file = bucket.file(profile_photo);
+
+        const [fileExists] = await file.exists();
+        if (fileExists)
+            return file;
+        else throw new RpcException(new NotFoundException('File is not found'));
+
+    }
+
+    async avatarRemove(email: string) {
+        const bucket = this.awsService.getBucket();
+
+        const { profile_photo } = await this.authService.send(AccountGetUserAvatar.topic, email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+        console.log(profile_photo)
+        const file = bucket.file(profile_photo);
+
+        const [fileExists] = await file.exists();
+        if (fileExists) {
+            await this.authService.send(AccountAvatarRemove.topic, email);
+            return file.delete();
         }
+        else throw new RpcException(new NotFoundException('File is not found'));
     }
 
     async sendCookie(res: Response, access_token: string, refreshToken: string) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Post, Query, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiGatewayAuthService } from '../services/api-gateway-auth.service';
 
@@ -24,6 +24,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { EmailConfirmationService } from '../services/email-confirmation.service';
 import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { hash } from 'bcryptjs';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -87,7 +88,25 @@ export class ApiGatewayAuthController {
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
     @Post('avatar/upload')
+    @HttpCode(HttpStatus.CREATED)
     async avatarUpload(@UploadedFile() file: Express.Multer.File, @Res({ passthrough: true }) res: Response, @Req() req: RequestWithUser) {
-        return await this.apiGatewayAuthService.avatarUpload(file, res, +req.user.email);
+        return await this.apiGatewayAuthService.avatarUpload(file, req, res, +req.user.id);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('avatar/download/')
+    async avatarDownload(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
+        const file = await this.apiGatewayAuthService.avatarDownload(req.user.email);
+        const extension = file.name.match(/\.([0-9a-z]+)(?=\?|$)/i);
+        res.setHeader('Content-Disposition', `attachment; filename="${file.name}"`);
+        res.setHeader('Content-Type', `image/jpeg`);
+        res.send(file)
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('avatar/remove')
+    async avatarRemove(@Req() req: RequestWithUser) {
+        return await this.apiGatewayAuthService.avatarRemove(req.user.email)
+    }
+
 }
