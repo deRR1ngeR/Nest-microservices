@@ -96,10 +96,10 @@ export class ApiGatewayAuthController {
     @UseGuards(JwtAuthGuard)
     @Get('avatar/download/')
     async avatarDownload(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
-        const file = await this.apiGatewayAuthService.avatarDownload(req.user.email);
-        const extension = file.name.match(/\.([0-9a-z]+)(?=\?|$)/i);
-        res.setHeader('Content-Disposition', `attachment; filename="${file.name}"`);
-        res.setHeader('Content-Type', `image/jpeg`);
+        const { file, profile_photo } = await this.apiGatewayAuthService.avatarDownload(req.user.email);
+        // const extension = file.name.match(/\.([0-9a-z]+)(?=\?|$)/i);
+        res.setHeader('Content-Disposition', `attachment; filename="${profile_photo}"`);
+        res.setHeader('Content-type', 'application/octet-stream');
         res.send(file)
     }
 
@@ -107,6 +107,12 @@ export class ApiGatewayAuthController {
     @Get('avatar/remove')
     async avatarRemove(@Req() req: RequestWithUser) {
         return await this.apiGatewayAuthService.avatarRemove(req.user.email)
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('avatar/show')
+    async getUserAvatar(@Req() req: RequestWithUser) {
+        return await this.apiGatewayAuthService.getUserAvatar(req.user.email)
     }
 
 }

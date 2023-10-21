@@ -126,13 +126,8 @@ export class ApiGatewayAuthService {
         ).toPromise();
 
 
-        const file = bucket.file(profile_photo);
-
-        const [fileExists] = await file.exists();
-        if (fileExists)
-            return file;
-        else throw new RpcException(new NotFoundException('File is not found'));
-
+        const [file] = await bucket.file(profile_photo).download()
+        return { file, profile_photo };
     }
 
     async avatarRemove(email: string) {
@@ -142,13 +137,33 @@ export class ApiGatewayAuthService {
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
-        console.log(profile_photo)
         const file = bucket.file(profile_photo);
 
         const [fileExists] = await file.exists();
         if (fileExists) {
             await this.authService.send(AccountAvatarRemove.topic, email);
             return file.delete();
+        }
+        else throw new RpcException(new NotFoundException('File is not found'));
+    }
+
+    async getUserAvatar(email: string) {
+        const bucket = this.awsService.getBucket();
+
+        const { profile_photo } = await this.authService.send(AccountGetUserAvatar.topic, email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
+
+        const file = bucket.file(profile_photo);
+
+        const [fileExists] = await file.exists();
+        if (fileExists) {
+            const [url] = await file.getSignedUrl({
+                action: 'read',
+                expires: '01-01-2030',
+            })
+            return url;
         }
         else throw new RpcException(new NotFoundException('File is not found'));
     }
