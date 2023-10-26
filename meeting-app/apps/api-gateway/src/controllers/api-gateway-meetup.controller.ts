@@ -1,34 +1,37 @@
-import { Body, Controller, Delete, Get, Header, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, StreamableFile, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res, StreamableFile, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { Observable } from 'rxjs';
 
 import { ApiGatewayMeetupService } from '../services/api-gateway-meetup.service';
-import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
+import { UpdateMeetupDto } from 'apps/api-gateway/src/dtos/meetup/update-meetup.dto';
 import { JwtAuthGuard } from '../guards/jwt.guard';
-import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
-import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
+import { MeetupSearch } from 'libs/common/contracts/meetups/meetups.search';
+import { CreateMeetupDto } from '../dtos/meetup/create-meetup.dto';
+import { CreateMeetupResponse } from 'apps/api-gateway/responses/create-meetup.response';
+import { Roles } from '../decorators/roles.decorator';
+import { $Enums } from '@prisma/client';
 
 @ApiTags('meetup')
 @Controller('meetup')
 export class ApiGatewayMeetupController {
   constructor(private readonly apiGatewayMeetupService: ApiGatewayMeetupService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createMeetupDto: CreateMeetupDto, @Req() req: RequestWithUser): Promise<Observable<MeetupCreate.Response>> {
-    return this.apiGatewayMeetupService.create(createMeetupDto, req.user.id);
+  async create(@Body() createMeetupDto: CreateMeetupDto, @Req() req: RequestWithUser): Promise<Observable<CreateMeetupResponse>> {
+    return this.apiGatewayMeetupService.create(createMeetupDto, +req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll(@Query() position: MeetupGetPosition.Request = undefined): Promise<MeetupCreate.Response[]> {
+  async findAll(@Query() position: MeetupGetPosition.Request = undefined): Promise<CreateMeetupResponse[]> {
     return this.apiGatewayMeetupService.findAll(position)
   }
 
@@ -42,29 +45,30 @@ export class ApiGatewayMeetupController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async delete(@Param('id') id: MeetupDelete.Request) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
     return this.apiGatewayMeetupService.delete(id);
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles($Enums.Role.ORGANIZER, $Enums.Role.ADMIN)
   @Patch(':id')
   @HttpCode(HttpStatus.ACCEPTED)
-  async update(@Param('id') id: string, @Body() updateMeetupDto: UpdateMeetupDto): Promise<Observable<MeetupUpdate.Response>> {
-    return this.apiGatewayMeetupService.update(id, updateMeetupDto);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() updateMeetupDto: UpdateMeetupDto, @Req() req: RequestWithUser): Promise<Observable<MeetupUpdate.Response>> {
+    return this.apiGatewayMeetupService.update(+id, updateMeetupDto, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('inviteUser/:meetupId')
   @HttpCode(HttpStatus.OK)
-  async inviteUsers(@Param('meetupId') meetupdId: number, @Query() email: AccountGetUserByEmail.Request, @Req() req: RequestWithUser) {
-    return this.apiGatewayMeetupService.inviteUsers(meetupdId, email, req);
+  async inviteUsers(@Param('meetupId', ParseIntPipe) meetupdId: number, @Query() email: AccountGetUserByEmail.Request, @Req() req: RequestWithUser) {
+    return this.apiGatewayMeetupService.inviteUsers(meetupdId, email, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('deleteUser/:meetupId')
   @HttpCode(HttpStatus.OK)
-  async deleteUserFromMeetup(@Param('meetupId') meetupdId: number, @Query() email: AccountGetUserByEmail.Request, @Req() req: RequestWithUser) {
-    return this.apiGatewayMeetupService.deleteUserFromMeetup(meetupdId, email, req);
+  async deleteUserFromMeetup(@Param('meetupId', ParseIntPipe) meetupdId: number, @Query() email: AccountGetUserByEmail.Request, @Req() req: RequestWithUser) {
+    return this.apiGatewayMeetupService.deleteUserFromMeetup(meetupdId, email, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -74,6 +78,13 @@ export class ApiGatewayMeetupController {
   async generateCsvReport(@Req() req: RequestWithUser) {
     const result = await this.apiGatewayMeetupService.generateCsv(+req.user.id);
     return new StreamableFile(result);
+  }
+
+  @Get('elastic')
+  async searchMeetupsElastic(
+    @Query() searchDto: MeetupSearch.MeetupSearchDto,
+  ): Promise<Observable<MeetupSearch.Response[]>> {
+    return this.apiGatewayMeetupService.findMeetupsWithElastic(searchDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -87,12 +98,13 @@ export class ApiGatewayMeetupController {
     return
   }
 
+
+
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async findById(@Param('id') id: string) {
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    console.log(typeof id)
     return await this.apiGatewayMeetupService.findById(id);
-
   }
-
 }

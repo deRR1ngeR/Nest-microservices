@@ -20,6 +20,8 @@ import { AccountAvatarUpdate } from 'libs/common/contracts/account/account.avata
 import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
 import { AccountGetUserAvatar } from 'libs/common/contracts/account/account.getUserFile';
 import { AccountAvatarRemove } from 'libs/common/contracts/account/account.avatarRemove';
+import { UserRegisterDto } from '../dtos/account/user-register.dto';
+import { UserRegisterResponse } from 'apps/api-gateway/responses/user-register.response';
 
 @Injectable()
 export class ApiGatewayAuthService {
@@ -27,7 +29,7 @@ export class ApiGatewayAuthService {
         private readonly configService: ConfigService,
         private readonly awsService: AwsService) { }
 
-    register(dto: AccountRegister.Request): Observable<AccountRegister.Response> {
+    register(dto: UserRegisterDto): Observable<UserRegisterResponse> {
         return this.authService.send('register', dto).pipe(
             catchError((error) =>
                 throwError(() => new RpcException(error.response)),
@@ -81,7 +83,10 @@ export class ApiGatewayAuthService {
     }
 
     async getUserByEmail(data: AccountGetUserByEmail.Request): Promise<AccountRegister.Response> {
-        return await this.authService.send(AccountGetUserByEmail.topic, data.email).toPromise()
+        return await this.authService.send(AccountGetUserByEmail.topic, data.email).pipe(
+            catchError((error) =>
+                throwError(() => new RpcException(error.response)))
+        ).toPromise();
     }
 
     async markEmailAsConfirmed(email: AccountMarkEmailAsConfirmed.Request): Promise<Observable<AccountMarkEmailAsConfirmed.Response>> {
@@ -99,12 +104,14 @@ export class ApiGatewayAuthService {
     }
 
     async logout(userId: number, res: Response) {
-        res.cookie('access_token', '', { expires: new Date(0) })
-        res.cookie('refresh_token', '', { expires: new Date(0) })
-        return await this.authService.send(AccountLogout.topic, { userId }).pipe(
+        await this.authService.send(AccountLogout.topic, { userId }).pipe(
             catchError((error) =>
                 throwError(() => new RpcException(error.response)))
         ).toPromise();
+
+        res.cookie('access_token', '', { expires: new Date(0) })
+        res.cookie('refresh_token', '', { expires: new Date(0) })
+        return
     }
 
     async avatarUpload(file: Express.Multer.File, req: RequestWithUser, res: Response, userId: number) {

@@ -33,6 +33,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/user-meetup/tsconfig.app.json"
       }
+    },
+    "meetups-search": {
+      "type": "application",
+      "root": "apps/meetups-search",
+      "entryFile": "main",
+      "sourceRoot": "apps/meetups-search/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/meetups-search/tsconfig.app.json"
+      }
     }
   }
 }

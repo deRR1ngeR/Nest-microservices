@@ -10,6 +10,7 @@ export class UserMeetupService {
 
 
   async addUserToMeetup(data: MeetupInviteUsers.Request) {
+    console.log(data);
     try {
       return await this.db.userMeetup.create({
         data: {
@@ -40,6 +41,7 @@ export class UserMeetupService {
   }
 
   async findUserMeetups(userId: number) {
+    console.log(userId)
     try {
       return await this.db.userMeetup.findMany({
         include: {

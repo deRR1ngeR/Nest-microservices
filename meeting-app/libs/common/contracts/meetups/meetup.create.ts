@@ -1,16 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Decimal } from '@prisma/client/runtime/library';
-import { IsString, IsOptional, IsArray, IsDateString, IsNumber } from 'class-validator';
-import { CreateMeetupDto } from './dtos/create-meetup.dto';
+import { CreateMeetupDto } from 'apps/api-gateway/src/dtos/meetup/create-meetup.dto';
 
 export namespace MeetupCreate {
 
     export class Request {
 
-        @ApiProperty()
         id: number;
 
-        @ApiProperty()
         data: CreateMeetupDto;
 
     }

@@ -1,8 +1,7 @@
-import { ForbiddenException, HttpException, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { AccountGetUserByEmail } from 'libs/common/contracts/account/account.getUserByEmail';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
-import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
+import { UpdateMeetupDto } from 'apps/api-gateway/src/dtos/meetup/update-meetup.dto';
 import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
 import { MeetupCommands } from 'libs/common/contracts/meetups/meetup.commands';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
@@ -14,6 +13,8 @@ import { RequestWithUser } from 'libs/common/contracts/account/interfaces/reques
 import { MeetupFindUserMeetups } from 'libs/common/contracts/meetup.findUserMeetups';
 import { stringify } from 'csv-stringify';
 import { pdfGenerator } from '../utils/pdf-generator'
+import { MeetupSearch } from 'libs/common/contracts/meetups/meetups.search';
+import { CreateMeetupDto } from '../dtos/meetup/create-meetup.dto';
 
 
 @Injectable()
@@ -22,7 +23,10 @@ export class ApiGatewayMeetupService {
     private readonly apiGateWayAuthService: ApiGatewayAuthService) { }
 
   async create(data: CreateMeetupDto, id: number): Promise<Observable<MeetupCreate.Response>> {
-    return this.meetingService.send(MeetupCommands.meetupCreate, { data, id });
+    return this.meetingService.send(MeetupCommands.meetupCreate, { data, id }).pipe(
+      catchError((error) =>
+        throwError(() => new RpcException(error.response)))
+    ).toPromise();;
   }
 
   async findAll(position: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
@@ -32,7 +36,7 @@ export class ApiGatewayMeetupService {
     ).toPromise();
   }
 
-  async findById(id: string): Promise<MeetupCreate.Response> {
+  async findById(id: number): Promise<MeetupCreate.Response> {
     let res = await this.meetingService.send(MeetupCommands.meetupGetById, id).pipe(
       catchError((error) =>
         throwError(() => new RpcException(error.response)))
@@ -41,21 +45,26 @@ export class ApiGatewayMeetupService {
   };
 
 
-  async delete(id: MeetupDelete.Request): Promise<Observable<MeetupDelete.Response>> {
+  async delete(id: number): Promise<Observable<MeetupDelete.Response>> {
     return this.meetingService.send(MeetupCommands.meetupDelete, id);
   }
 
-  async update(id: string, dto: UpdateMeetupDto): Promise<Observable<MeetupUpdate.Response>> {
-    return this.meetingService.send(MeetupCommands.meetupUpdate, { id: id, data: dto });
+  async update(id: number, dto: UpdateMeetupDto, userId: number): Promise<Observable<MeetupUpdate.Response>> {
+    const { creatorId } = await this.findById(id);
+
+    if (creatorId == userId)
+      return this.meetingService.send(MeetupCommands.meetupUpdate, { id: id, data: dto });
+    else throw new ForbiddenException('Acces closed');
   }
 
-  async inviteUsers(meetupId: number, email: AccountGetUserByEmail.Request, req: RequestWithUser) {
-
-    const creatorId = (await this.findById(meetupId.toString())).creatorId;
-    if (req.user.id == creatorId) {
-      const userId = (await this.apiGateWayAuthService.getUserByEmail(email)).id;
-
-      return await this.meetingService.send(MeetupCommands.meetupInviteUsers, { meetupId, userId }).pipe(
+  async inviteUsers(meetupId: number, email: AccountGetUserByEmail.Request, id: number) {
+    const creatorId = (await this.findById(meetupId)).creatorId;
+    if (id == creatorId) {
+      const user = (await this.apiGateWayAuthService.getUserByEmail(email));
+      console.log(user)
+      if (!user)
+        throw new RpcException(new NotFoundException('No user with such email'))
+      return await this.meetingService.send(MeetupCommands.meetupInviteUsers, { meetupId, userId: user.id }).pipe(
         catchError((error) =>
           throwError(() => new RpcException(error.response)))
       ).toPromise();
@@ -65,14 +74,17 @@ export class ApiGatewayMeetupService {
     }
   }
 
-  async deleteUserFromMeetup(meetupId: number, email: AccountGetUserByEmail.Request, req: RequestWithUser) {
+  async deleteUserFromMeetup(meetupId: number, email: AccountGetUserByEmail.Request, id: number) {
 
-    const creatorId = (await this.findById(meetupId.toString())).creatorId;
+    const creatorId = (await this.findById(meetupId)).creatorId;
 
-    if (req.user.id == creatorId) {
-      const userId = (await this.apiGateWayAuthService.getUserByEmail(email)).id;
+    if (id == creatorId) {
+      const user = (await this.apiGateWayAuthService.getUserByEmail(email));
+      console.log(user)
+      if (!user)
+        throw new RpcException(new NotFoundException('No user with such email'))
 
-      return await this.meetingService.send(MeetupCommands.meetupDeleteUser, { meetupId, userId }).pipe(
+      return await this.meetingService.send(MeetupCommands.meetupDeleteUser, { meetupId, userId: user.id }).pipe(
         catchError((error) =>
           throwError(() => new RpcException(error.response)))
       ).toPromise();
@@ -112,4 +124,12 @@ export class ApiGatewayMeetupService {
 
   }
 
+  async findMeetupsWithElastic(
+    searchDto: MeetupSearch.MeetupSearchDto,
+  ): Promise<Observable<MeetupSearch.Response[]>> {
+    return this.meetingService.send(
+      MeetupSearch.findAllMeetupsElasticTopic,
+      searchDto,
+    );
+  }
 }

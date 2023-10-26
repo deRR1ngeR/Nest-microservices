@@ -1,7 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 import { MeetupTypeResponse } from './types/response.meetup.type';
-import { UpdateMeetupDto } from './dtos/update-meetup.dto';
+import { UpdateMeetupDto } from '../../../../apps/api-gateway/src/dtos/meetup/update-meetup.dto';
 import { Decimal } from '@prisma/client/runtime/library';
 
 export namespace MeetupUpdate {

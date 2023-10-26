@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Decimal } from '@prisma/client/runtime/library';
-import { IsString, IsOptional, IsArray, IsDateString, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsDateString, IsDecimal } from 'class-validator';
 
 export class CreateMeetupDto {
     @ApiProperty()
@@ -23,10 +23,10 @@ export class CreateMeetupDto {
     date: Date;
 
     @ApiProperty()
-    @IsNumber()
+    @IsDecimal()
     longitude: Decimal;
 
     @ApiProperty()
-    @IsNumber()
+    @IsDecimal()
     latitude: Decimal;
 }

@@ -24,7 +24,8 @@ import { RolesGuard } from '../guards/roles.guard';
 import { EmailConfirmationService } from '../services/email-confirmation.service';
 import { RequestWithUser } from 'libs/common/contracts/account/interfaces/request-with-user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { hash } from 'bcryptjs';
+import { UserRegisterDto } from '../dtos/account/user-register.dto';
+import { UserRegisterResponse } from 'apps/api-gateway/responses/user-register.response';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -34,7 +35,7 @@ export class ApiGatewayAuthController {
         private readonly emailConfirmationService: EmailConfirmationService) { }
 
     @Post('register')
-    async register(@Body() createUserDto: AccountRegister.Request): Promise<Observable<AccountRegister.Response>> {
+    async register(@Body() createUserDto: UserRegisterDto): Promise<Observable<UserRegisterResponse>> {
         const user = this.apiGatewayAuthService.register(createUserDto);
         await this.emailConfirmationService.sendVerificationLink(createUserDto.email);
         return user;
@@ -81,7 +82,7 @@ export class ApiGatewayAuthController {
 
     @UseGuards(JwtAuthGuard)
     @Get('logout')
-    async logout(@Req() req: RequestWithUser, @Res() res: Response) {
+    async logout(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
         await this.apiGatewayAuthService.logout(req.user.id, res);
     }
 
@@ -97,7 +98,6 @@ export class ApiGatewayAuthController {
     @Get('avatar/download/')
     async avatarDownload(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
         const { file, profile_photo } = await this.apiGatewayAuthService.avatarDownload(req.user.email);
-        // const extension = file.name.match(/\.([0-9a-z]+)(?=\?|$)/i);
         res.setHeader('Content-Disposition', `attachment; filename="${profile_photo}"`);
         res.setHeader('Content-type', 'application/octet-stream');
         res.send(file)

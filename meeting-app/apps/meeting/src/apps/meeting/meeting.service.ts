@@ -1,17 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'libs/common/database/prisma.service';
-import { UpdateMeetupDto } from 'libs/common/contracts/meetups/dtos/update-meetup.dto';
+import { UpdateMeetupDto } from 'apps/api-gateway/src/dtos/meetup/update-meetup.dto';
 import { MeetupCreate } from 'libs/common/contracts/meetups/meetup.create';
 import { MeetupUpdate } from 'libs/common/contracts/meetups/update-meetup';
 import { MeetupDelete } from 'libs/common/contracts/meetups/meetup.delete';
 import * as geolib from 'geolib';
 import { MeetupGetPosition } from 'libs/common/contracts/meetups/meetup.GetPosition';
-import { CreateMeetupDto } from 'libs/common/contracts/meetups/dtos/create-meetup.dto';
+import { MeetupSearch } from 'libs/common/contracts/meetups/meetups.search';
+import { MeetupsSearchService } from '../meetups-search/meetups-search.service';
+import { CreateMeetupDto } from 'apps/api-gateway/src/dtos/meetup/create-meetup.dto';
 
 @Injectable()
 export class MeetingService {
-  constructor(private readonly db: PrismaService) { }
+  constructor(private readonly db: PrismaService,
+    private readonly meetupsSearchService: MeetupsSearchService) { }
 
   async create(data: CreateMeetupDto, id: number) {
     return await this.db.meetup.create({
@@ -79,5 +82,9 @@ export class MeetingService {
     catch (err) {
       return
     }
+  }
+
+  async findAllMeetupsElastic(searchDto: MeetupSearch.MeetupSearchDto) {
+    return this.meetupsSearchService.search(searchDto.query);
   }
 }
