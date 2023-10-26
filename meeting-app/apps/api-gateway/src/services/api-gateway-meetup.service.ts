@@ -23,10 +23,16 @@ export class ApiGatewayMeetupService {
     private readonly apiGateWayAuthService: ApiGatewayAuthService) { }
 
   async create(data: CreateMeetupDto, id: number): Promise<Observable<MeetupCreate.Response>> {
-    return this.meetingService.send(MeetupCommands.meetupCreate, { data, id }).pipe(
+    let meetup = await this.meetingService.send(MeetupCommands.meetupCreate, { data, id }).pipe(
+      catchError((error) =>
+        throwError(() => new RpcException(error.response)))
+    ).toPromise();
+
+    await this.meetingService.send(MeetupCommands.meetupInviteUsers, { meetupId: meetup.id, userId: id }).pipe(
       catchError((error) =>
         throwError(() => new RpcException(error.response)))
     ).toPromise();;
+    return meetup;
   }
 
   async findAll(position: MeetupGetPosition.Request): Promise<MeetupCreate.Response[]> {
