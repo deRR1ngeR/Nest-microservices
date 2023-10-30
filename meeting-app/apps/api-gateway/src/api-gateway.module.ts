@@ -23,7 +23,7 @@ import { AwsService } from './utils/google-storage';
         name: 'MEETING_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: ['amqp://rmq:5672'],
           queue: 'meeting_queue',
           queueOptions: {
             durable: false
@@ -34,7 +34,7 @@ import { AwsService } from './utils/google-storage';
         name: 'AUTH_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: ['amqp://rmq:5672'],
           queue: 'auth_queue',
           queueOptions: {
             durable: false

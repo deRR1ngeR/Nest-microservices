@@ -80,6 +80,7 @@ export class ApiGatewayMeetupController {
     return new StreamableFile(result);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('elastic')
   async searchMeetupsElastic(
     @Query() searchDto: MeetupSearch.MeetupSearchDto,
