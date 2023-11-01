@@ -1,0 +1,123 @@
+version: '3.8'
+services:
+  meetup:
+    build:
+      context: .
+      dockerfile: ./apps/meeting/Dockerfile
+    command: npm run start:dev meetup
+    depends_on: 
+      db:
+        condition: service_started
+      rmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+
+      # - kibana
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/meetups-db
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - meetup  
+
+  account:
+    build:
+      context: .
+      dockerfile: ./apps/account/Dockerfile
+    command: npm run start:dev account
+    depends_on: 
+      - db
+      - rmq
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/meetups-db
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - meetup   
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+    command: npm run start:dev api-gateway
+    depends_on: 
+      - db
+      - rmq
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/meetups-db
+    ports: 
+      - "3333:3333"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - meetup       
+
+  db:
+    container_name: db
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: meetups-db
+    ports:
+      - "5433:5432"
+    networks:
+      - meetup   
+  rmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+    networks:
+      - meetup
+      
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.2
+    container_name: kibana
+    volumes:
+      - ./docker/elk-config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+    ports:
+      - "5601:5601"
+    networks:
+      - meetup
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.2
+    environment:
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      discovery.type: single-node
+      xpack.security.enabled: false
+    volumes:
+      - ./docker/elk-config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://elasticsearch:9200 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10   
+    networks:
+      - meetup
+
+volumes:
+  data01:
+    driver: local
+  data02:
+    driver: local
+  data03:
+    driver: local
+
+networks:
+  meetup:
+    driver:  bridge
+ 
