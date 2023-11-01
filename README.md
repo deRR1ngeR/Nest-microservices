@@ -1,5 +1,5 @@
 ## Используемые технологии
-- NEST
+- Nest.JS
 - postgre
 - ORM: prisma
 - swagger
